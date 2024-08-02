@@ -1,0 +1,165 @@
+---
+title: "WildFireData"
+author: "Shiven Khurana"
+date: "2023-03-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r data}
+fireData = FINALWildFireData
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r var}
+avgtemp <- as.numeric(fireData$avg_temp)
+hightemp <- fireData$`Highest temp`
+precipitation <- fireData$precipitation
+dewpoint <- fireData$dew_point
+maxwind <- fireData$max_wind_speed
+areahectare <- fireData$area_ha
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r histograms}
+hist(avgtemp, 10, main= "Average Temperature")
+hist(hightemp, 10, main= "Highest Temperature")
+hist(precipitation, 10, main= "Precipitation")
+hist(dewpoint, 10, main= "Dewpoint")
+hist(maxwind, 10, main= "Maximum Wind Speed")
+hist(areahectare, 10, main= "Area in Hectares")
+```
+Analyzation of the Histograms.
+Average Temperature: The Average Temperature distribution seems not be skewed and in the bell shape, although there are some outliers from -20 to 0. Highest Temperature: The Highest Temperature distribution seems to not be skewed either and is also in a bell shape. Same for Average Temperature, there are some outliers ranging from -10 to 10. Precipitation: The Precipitation distribution is very collective in the 0.0 category, although there is/are some outliers in the 0.8 category. Dew point: The Dew point distribution is a bit skewed to the left and there are some outliers closer to the negative category. Max Wind Speed: The Max Wind Speed distribution is a bit skewed to the right and there are a couple of outliers towards left closer to 80 and 120 (Max Wind Speed is in Mph). Area in Hectares: The Area in Hectares distribution is very skewed to the right as is max reaches 200 thousand.
+
+```{r outlier removing}
+quartiles <- quantile(areahectacre, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(areahectacre)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+area_no_outlier <- subset(areahectacre, areahectacre > Lower & areahectacre < Upper)
+avgtemp_no_outlier <- subset(avgtemp, areahectacre > Lower & areahectacre < Upper)
+hightemp_no_outlier <- subset(hightemp, areahectacre > Lower & areahectacre < Upper)
+precipitation_no_outlier <- subset(precipitation, areahectacre > Lower & areahectacre < Upper)
+dewpoint_no_outlier <- subset(dewpoint, areahectacre > Lower & areahectacre < Upper)
+maxwind_no_outlier <- subset(maxwind, areahectacre > Lower & areahectacre < Upper)
+```
+
+```{r pairs}
+library(dplyr)
+pairs_data <- data.frame(area_no_outlier, avgtemp_no_outlier, hightemp_no_outlier, precipitation_no_outlier, dewpoint_no_outlier, maxwind_no_outlier)
+pairs(pairs_data)
+```
+
+```{r model}
+###fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+precipitation_no_outlier+ dewpoint_no_outlier+maxwind_no_outlier, data = fireData)
+###
+fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+dewpoint_no_outlier+maxwind_no_outlier + avgtemp_no_outlier:hightemp_no_outlier+ avgtemp_no_outlier:maxwind_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(fireModel)
+sf
+```
+
+```{r avgtempModel}
+###fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+precipitation_no_outlier+ dewpoint_no_outlier+maxwind_no_outlier, data = fireData)
+###
+avgtempModel = lm(log(area_no_outlier)~avgtemp_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(avgtempModel)
+sf
+```
+From the summary statistics of the model, we can see that there is a t-value of -1.933, which
+is compared to the t distribution, giving us a p-value of
+0.054. Hence we can conclude that there is not strong enough evidence to suggest that
+there is a difference in the relationship between average temperature and log area in Hectares.
+```{r hightempModel}
+###fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+precipitation_no_outlier+ dewpoint_no_outlier+maxwind_no_outlier, data = fireData)
+###
+hightempModel = lm(log(area_no_outlier)~hightemp_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(hightempModel)
+sf
+```
+From the summary statistics of the model, we can see that there is a t-value of -2.16, which
+is compared to the t distribution, giving us a p-value of
+0.0314. Hence we can conclude that there is strong enough evidence to suggest that
+there is a difference in the relationship between highest temperature and log area in Hectares.
+```{r precipitationModel}
+precipitationModel = lm(log(area_no_outlier)~precipitation_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(precipitationModel)
+sf
+```
+From the summary statistics of the model, we can see that there is a t-value of -0.447, which
+is compared to the t distribution, giving us a p-value of
+0.655. Hence we can conclude that there is not strong enough evidence to suggest that
+there is a difference in the relationship between precipitation and log area in Hectares.
+```{r dewpointModel}
+###fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+precipitation_no_outlier+ dewpoint_no_outlier+maxwind_no_outlier, data = fireData)
+###
+dewpointModel = lm(log(area_no_outlier)~dewpoint_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(dewpointModel)
+sf
+```
+From the summary statistics of the model, we can see that there is a t-value of 1.294, which
+is compared to the t distribution, giving us a p-value of0.196. Hence we can conclude that there is not strong enough evidence to suggest that there is a difference in the relationship between dew point and log area in Hectares.
+```{r MaxwindModel}
+###fireModel = lm(log(area_no_outlier)~avgtemp_no_outlier+hightemp_no_outlier+precipitation_no_outlier+ dewpoint_no_outlier+maxwind_no_outlier, data = fireData)
+###
+maxwindModel = lm(log(area_no_outlier)~maxwind_no_outlier, data = fireData)
+cookd2 = cooks.distance(fireModel)
+sorted2 = sort(cookd2, decreasing = TRUE)
+sf = summary(maxwindModel)
+sf
+```
+From the summary statistics of the model, we can see that there is a t-value of -0.737, which
+is compared to the t distribution, giving us a p-value of 0.461. Hence we can conclude that there is not strong enough evidence to suggest that there is a difference in the relationship between max wind speed and log area in Hectares.
+Residual plots
+```{r averagetemp}
+plot(x = avgtemp,
+     y = log(areahectacre))
+abline(avgtempModel)
+```
+```{r highesttemp}
+plot(x = hightemp,
+     y = log(areahectacre))
+abline(hightempModel)
+```
+```{r precipitation}
+plot(x = precipitation,
+     y = log(areahectacre))
+abline(precipitationModel)
+```
+```{r dewpoint}
+plot(x = dewpoint, 
+     y = log(areahectacre))
+abline(dewpointModel)
+```
+```{r maxwindspeed}
+plot(x = maxwind,
+     y = log(areahectacre))
+abline(maxwindModel)
+```
+```{r plots}
+#par(mfrow = c(2,2))
+plot(fireModel)
+```
