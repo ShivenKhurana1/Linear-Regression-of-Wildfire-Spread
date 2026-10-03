@@ -16,6 +16,8 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r data}
+library(readxl)
+FINALWildFireData <- read_excel("FINALWildFireData.xlsx")
 fireData = FINALWildFireData
 ```
 
@@ -46,16 +48,16 @@ Analyzation of the Histograms.
 Average Temperature: The Average Temperature distribution seems not be skewed and in the bell shape, although there are some outliers from -20 to 0. Highest Temperature: The Highest Temperature distribution seems to not be skewed either and is also in a bell shape. Same for Average Temperature, there are some outliers ranging from -10 to 10. Precipitation: The Precipitation distribution is very collective in the 0.0 category, although there is/are some outliers in the 0.8 category. Dew point: The Dew point distribution is a bit skewed to the left and there are some outliers closer to the negative category. Max Wind Speed: The Max Wind Speed distribution is a bit skewed to the right and there are a couple of outliers towards left closer to 80 and 120 (Max Wind Speed is in Mph). Area in Hectares: The Area in Hectares distribution is very skewed to the right as is max reaches 200 thousand.
 
 ```{r outlier removing}
-quartiles <- quantile(areahectacre, probs=c(.25, .75), na.rm = FALSE)
-IQR <- IQR(areahectacre)
+quartiles <- quantile(areahectare, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(areahectare)
 Lower <- quartiles[1] - 1.5*IQR
 Upper <- quartiles[2] + 1.5*IQR 
-area_no_outlier <- subset(areahectacre, areahectacre > Lower & areahectacre < Upper)
-avgtemp_no_outlier <- subset(avgtemp, areahectacre > Lower & areahectacre < Upper)
-hightemp_no_outlier <- subset(hightemp, areahectacre > Lower & areahectacre < Upper)
-precipitation_no_outlier <- subset(precipitation, areahectacre > Lower & areahectacre < Upper)
-dewpoint_no_outlier <- subset(dewpoint, areahectacre > Lower & areahectacre < Upper)
-maxwind_no_outlier <- subset(maxwind, areahectacre > Lower & areahectacre < Upper)
+area_no_outlier <- subset(areahectare, areahectare > Lower & areahectare < Upper)
+avgtemp_no_outlier <- subset(avgtemp, areahectare > Lower & areahectare < Upper)
+hightemp_no_outlier <- subset(hightemp, areahectare > Lower & areahectare < Upper)
+precipitation_no_outlier <- subset(precipitation, areahectare > Lower & areahectare < Upper)
+dewpoint_no_outlier <- subset(dewpoint, areahectare > Lower & areahectare < Upper)
+maxwind_no_outlier <- subset(maxwind, areahectare > Lower & areahectare < Upper)
 ```
 
 ```{r pairs}
@@ -136,27 +138,27 @@ is compared to the t distribution, giving us a p-value of 0.461. Hence we can co
 Residual plots
 ```{r averagetemp}
 plot(x = avgtemp,
-     y = log(areahectacre))
+     y = log(areahectare))
 abline(avgtempModel)
 ```
 ```{r highesttemp}
 plot(x = hightemp,
-     y = log(areahectacre))
+     y = log(areahectare))
 abline(hightempModel)
 ```
 ```{r precipitation}
 plot(x = precipitation,
-     y = log(areahectacre))
+     y = log(areahectare))
 abline(precipitationModel)
 ```
 ```{r dewpoint}
 plot(x = dewpoint, 
-     y = log(areahectacre))
+     y = log(areahectare))
 abline(dewpointModel)
 ```
 ```{r maxwindspeed}
 plot(x = maxwind,
-     y = log(areahectacre))
+     y = log(areahectare))
 abline(maxwindModel)
 ```
 ```{r plots}
